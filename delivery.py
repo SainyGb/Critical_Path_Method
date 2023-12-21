@@ -8,10 +8,12 @@ line = list() #contains a single line
 singleElement = list()
 tasks = dict() #contains all the tasks
 number = -1
-fhand = open('cpm1.txt') #TWO FILES: cpm.txt and cpm1.txt
+fhand = open('cpm1_new.txt') #TWO FILES: cpm.txt and cpm1.txt
 
+count = 0
 for line in fhand: #slide the file line by line
     singleElement=(line.split(',')) #split a line in subparts
+    print(singleElement)
     number += 1
     for i in range(len(singleElement)): #creating the single task element
         tasks['task'+ str(singleElement[0])]= dict()
@@ -28,43 +30,48 @@ for line in fhand: #slide the file line by line
         tasks['task'+ str(singleElement[0])]['LF'] = 0
         tasks['task'+ str(singleElement[0])]['float'] = 0
         tasks['task'+ str(singleElement[0])]['isCritical'] = False
-
+        count +=1
+print(count)
 # =============================================================================
 # FORWARD PASS
 # =============================================================================
-for taskFW in tasks: #slides all the tasks
-    if('-1' in tasks[taskFW]['dependencies']): #checks if it's the first task
-        tasks[taskFW]['ES'] = 1
-        tasks[taskFW]['EF'] = (tasks[taskFW]['duration'])
+
+#Complexidade do foward pass: O(V^2)*O(E) => Considerando que E é O(V): O(V^2)*O(V)
+for keys,taskFW in tasks.items(): #slides all the tasks                                                                     #faz isso para cada vértice(task) O(V)
+    if('-1' in tasks[keys]['dependencies']): #checks if it's the first task
+        taskFW['ES'] = 1
+        taskFW['EF'] = (tasks[keys]['duration'])
     else: #not the first task
-        for k in tasks.keys():
-            for dipendenza in tasks[k]['dependencies']: #slides all the dependency in a single task
+        for k, values in tasks.items():                                                                                     #faz isso para cara vértice(task)  O(V)
+            for dipendenza in values['dependencies']: #slides all the dependency in a single task                           #faz isso para cada aresta(dependencies) O(E)
                 #print('task ' + taskFW + ' k '+ k + ' dipendenza ' +dipendenza)
                 if(dipendenza != '-1' and len(tasks[k]['dependencies']) == 1): #if the task k has only one dependency
-                    tasks[k]['ES'] = int(tasks['task'+ dipendenza]['EF']) +1
-                    tasks[k]['EF'] = int(tasks[k]['ES']) + int(tasks[k]['duration']) -1
+                    values['ES'] = int(tasks['task'+ dipendenza]['EF']) +1
+                    values['EF'] = int(tasks[k]['ES']) + int(tasks[k]['duration']) -1
                 elif(dipendenza !='-1'): #if the task k has more dependency
-                    if(int(tasks['task'+dipendenza]['EF']) > int(tasks[k]['ES'])):
-                        tasks[k]['ES'] = int(tasks['task'+ dipendenza]['EF']) +1
-                        tasks[k]['EF'] = int(tasks[k]['ES']) + int(tasks[k]['duration']) -1
+                    if(int(tasks['task'+dipendenza]['EF']) > int(values['ES'])):
+                        values['ES'] = int(tasks['task'+ dipendenza]['EF']) +1
+                        values['EF'] = int(values['ES']) + int(values['duration']) -1
 
-aList = list() #list of task keys
-for element in tasks.keys():
-    aList.append(element)
 
-bList = list() #reversed list of task keys
-while len(aList) > 0:
-    bList.append(aList.pop())
-    
+
+
 # =============================================================================
 # BACKWARD PASS
 # =============================================================================
-for taskBW in bList:
-    if(bList.index(taskBW) == 0): #check if it's the last task (so no more task)
-        tasks[taskBW]['LF']=tasks[taskBW]['EF']
+
+#Complexidade do Backward pass: O(V)*O(E) => O(V*E)
+
+bList = list() #list of task keys
+for element in tasks:
+    bList.append(element)
+bList.reverse()
+
+for taskBW in bList:                                                                                                        #faz isso para cara vértice(task)  O(V)
+    if(bList.index(taskBW) == 0): #check if it's the last task (so no more task)ha
         tasks[taskBW]['LS']=tasks[taskBW]['ES']
         
-    for dipendenza in tasks[taskBW]['dependencies']: #slides all the dependency in a single task
+    for dipendenza in tasks[taskBW]['dependencies']: #slides all the dependency in a single task                            #faz isso para cada aresta(dependencies) O(E)
         if(dipendenza != '-1'): #check if it's NOT the last task
             if(tasks['task'+ dipendenza]['LF'] == 0): #check if the the dependency is already analyzed
                 #print('ID dipendenza: '+str(tasks['task'+dipendenza]['id']) + ' taskBW: '+str(tasks[taskBW]['id']))
@@ -80,6 +87,9 @@ for taskBW in bList:
 # =============================================================================
 # PRINTING  
 # =============================================================================
+
+#Complexidade total => O(V)*O(E)*O(V) + O(V)*O(E); Temos que a complexidade é O(V^2*E)
+
 print('task id, task name, duration, ES, EF, LS, LF, float, isCritical')
 for task in tasks:
     if(tasks[task]['float'] == 0):
@@ -91,9 +101,7 @@ for task in tasks:
              
             
         
-                
-            
-    
+        
         
         
         
